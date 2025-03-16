@@ -1,3 +1,39 @@
+// use std::path::Path;
+
+// // use anyhow::Result;
+// use super::{memtable::Memtable, sst::SST, wal::WAL};
+// use crate::errors::{Result, ShortDBErrors};
+// use bytes::Bytes;
+
+// pub struct ShorterDB {
+//     memtable: Memtable,
+//     wal: WAL,
+//     sst: SST,
+// }
+
+// impl ShorterDB {
+//     pub fn new() -> Self {
+//         Self {
+//             memtable: Memtable::new(),
+//             wal: WAL::new(),
+//             sst: SST::new(Path::new(".")).unwrap(),
+//         }
+//     }
+
+//     pub fn get(&self, key: &[u8]) -> Result<Option<Bytes>> {
+//         self.memtable.get(key)
+//     }
+
+//     pub fn set(&self, key: &[u8], value: &[u8]) -> Result<()> {
+//         self.memtable.set(key, value)
+//         //check whether err(flushneeded or not) impl flush_to_sst()
+//     }
+//     pub fn delete(&self, key: &[u8]) -> Result<()> {
+//         self.memtable.delete(key)
+//         //check whether err(flushneeded or not)
+//     }
+// }
+
 use super::{
     memtable::Memtable,
     sst::SST,
@@ -5,23 +41,24 @@ use super::{
 };
 use crate::errors::{Result, ShortDBErrors};
 use bytes::Bytes;
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{fs, io::Read};
 
 pub struct ShorterDB {
-    memtable: Memtable,
-    wal: WAL,
-    sst: SST,
-    data_dir: PathBuf,
+    pub memtable: Memtable,
+    pub wal: WAL,
+    pub sst: SST,
+    pub data_dir: PathBuf,
 }
 
 impl ShorterDB {
     pub fn new<P: AsRef<Path>>(data_dir: P) -> Result<Self> {
         let data_dir = data_dir.as_ref().to_path_buf();
-        fs::create_dir_all(&data_dir)?; // Ensure the data directory exists
+        fs::create_dir_all(&data_dir); // Ensure the data directory exists
 
         let wal = WAL::new(&data_dir).unwrap();
-        let sst = SST::new(&data_dir.join("./data.sst"));
+        let sst = SST::open("db_test".to_string());
+
         Ok(Self {
             memtable: Memtable::new(),
             wal,
@@ -30,7 +67,7 @@ impl ShorterDB {
         })
     }
 
-    pub fn get(&self, key: &[u8]) -> Result<Option<Bytes>> {
+    pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
         // First check in Memtable
         // if let Some(value) = self.memtable.get(key) {
         //     return Ok(Some(value));
@@ -40,14 +77,15 @@ impl ShorterDB {
         match self.memtable.get(key) {
             Ok(None) => println!("data deleted"),
             Ok(Some(v)) => {
-                return Ok(Some(v));
+                return Ok(Some(v.to_vec()));
             }
             Err(ShortDBErrors::KeyNotFound) => println!("not found in mem"),
             Err(e) => println!("something problematic happend {}", e),
         }
-        dbg!("checking in sst");
+
         // If not found in Memtable, check SST
         if let Some(value) = self.sst.get(key) {
+            print!("checking in sst");
             return Ok(Some(value));
         }
 
@@ -62,7 +100,7 @@ impl ShorterDB {
         };
 
         // Write to the WAL
-        self.wal.write(&entry)?;
+        self.wal.write(&entry);
 
         // Insert into Memtable
         self.memtable.set(key, value)?;
@@ -71,7 +109,7 @@ impl ShorterDB {
         if let Err(err) = self.memtable.set(key, value) {
             match err {
                 ShortDBErrors::FlushNeededFromMemTable => self.flush_memtable()?,
-                _ => println!("{}", err),
+                _ => println!("some err happend"),
             }
         }
 
@@ -86,7 +124,7 @@ impl ShorterDB {
         };
 
         // Write tombstone to WAL
-        self.wal.write(&tombstone_entry)?;
+        self.wal.write(&tombstone_entry);
 
         // Delete from Memtable
         self.memtable.delete(key)?;
@@ -95,7 +133,7 @@ impl ShorterDB {
         if let Err(err) = self.memtable.delete(key) {
             match err {
                 ShortDBErrors::FlushNeededFromMemTable => self.flush_memtable()?,
-                _ => println!("{:?}", err),
+                _er => println!("some problem: {}", _er),
             }
         }
 
@@ -107,14 +145,11 @@ impl ShorterDB {
         // for entry in self.memtable.memtable.iter() {
         //     self.sst.set(entry.key().as_ref(), entry.value().as_ref())?;
         // }
+        self.sst.queue.push_back(self.memtable.clone());
+        self.sst.set();
 
-        // println!("Memtable: Flushing {} entries to SST", self.memtable.len());
-        // for entry in self.memtable.memtable.iter() {
-        //     self.sst.set(entry.key().as_ref(), entry.value().as_ref());
-        // }
+        // Clear the Memtable after flushing
         self.memtable.clear();
-        // self.sst.flush();
-        // self.sst.queue.push_back(self.memtable.memtable);
 
         Ok(())
     }
