@@ -1,5 +1,5 @@
 [package]
-name = "write_from_csv"
+name = "repl_csv"
 version = "0.1.0"
 edition = "2021"
 
