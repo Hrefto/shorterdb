@@ -60,7 +60,9 @@ fn main() -> Result<()> {
         }
 
         // Parse the input command using clap
-        let args: Vec<&str> = input.split_whitespace().collect();
+        let args: Vec<&str> = std::iter::once("shortdb")
+            .chain(input.split_whitespace())
+            .collect();
         let cli = Cli::parse_from(args);
 
         match cli.command {

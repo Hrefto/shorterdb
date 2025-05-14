@@ -44,6 +44,6 @@ def generate_dataset(size=1000000000, filename='data.csv'):
             writer.writerow([key, value])
 
 # Generate the dataset and write it to a CSV file
-generate_dataset(1000000000)
+generate_dataset(1000)
 
 print(f"Dataset has been written to data.csv")
