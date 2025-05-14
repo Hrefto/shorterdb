@@ -1,5 +1,5 @@
 [package]
-name = "shorterDB"
+name = "shorterdb"
 version = "0.1.0"
 authors = ["K V Varun Krishnan <hello@vrn21.com>", "M Arjun Krishna"]
 edition = "2021"

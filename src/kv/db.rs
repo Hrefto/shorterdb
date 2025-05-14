@@ -21,7 +21,7 @@ impl ShorterDB {
         fs::create_dir_all(&data_dir); // Ensure the data directory exists
 
         let wal = WAL::new(&data_dir).unwrap();
-        let sst = SST::open("db_test".to_string());
+        let sst = SST::open(format!("{:?}", data_dir));
 
         Ok(Self {
             memtable: Memtable::new(),

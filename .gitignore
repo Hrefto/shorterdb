@@ -1,7 +1,5 @@
-/target
 /test_db
-data2.csv
 data.csv
-wal.log
-/db_test
+db_test
 .ropeproject/
+target
