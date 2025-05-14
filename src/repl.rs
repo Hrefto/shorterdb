@@ -1,12 +1,18 @@
-pub mod errors;
-pub mod kv;
+//! REPL for ShorterDB
+//!
+//! Run this file using:
+//! ```bash
+//! cargo run --bin repl
+//! ```
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use csv::ReaderBuilder;
 use kv::db::ShorterDB;
-use std::fs::File;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
+
+pub mod errors;
+pub mod kv;
 
 #[derive(Parser)]
 #[command(name = "shortdb")]
@@ -26,22 +32,6 @@ enum Commands {
 fn main() -> Result<()> {
     let mut db = ShorterDB::new(Path::new("./test_db"))?;
 
-    // Read data from CSV file
-    let csv_file_path = PathBuf::from("data.csv");
-    let mut rdr = ReaderBuilder::new()
-        .has_headers(false)
-        .from_reader(File::open(csv_file_path)?);
-
-    for result in rdr.records() {
-        let record = result?;
-        if record.len() == 2 {
-            let key = record.get(0).unwrap();
-            let value = record.get(1).unwrap();
-            db.set(key.as_bytes(), value.as_bytes())?;
-            println!("Inserted Key: {}, Value: {}", key, value);
-        }
-    }
-
     println!("Welcome to the ShortDB REPL!");
     println!("Syntax:- \n (i) set <key> <value> : maps <key> and <value> \n ");
 
@@ -59,7 +49,6 @@ fn main() -> Result<()> {
             break;
         }
 
-        // Parse the input command using clap
         let args: Vec<&str> = std::iter::once("shortdb")
             .chain(input.split_whitespace())
             .collect();

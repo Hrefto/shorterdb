@@ -14,17 +14,17 @@ use anyhow::Error;
 
 use super::{memtable::Memtable, utils::bytes_to_string};
 
-pub struct SST {
-    pub dir: PathBuf,
-    pub levels: Vec<PathBuf>,
-    pub max_level_size: Vec<usize>,
-    pub curr_level_size: Vec<usize>,
-    pub queue: VecDeque<Memtable>,
+pub(crate) struct SST {
+    pub(crate) dir: PathBuf,
+    pub(crate) levels: Vec<PathBuf>,
+    pub(crate) max_level_size: Vec<usize>,
+    pub(crate) curr_level_size: Vec<usize>,
+    pub(crate) queue: VecDeque<Memtable>,
     // parralellisation: todo!(),
 }
 
 impl SST {
-    pub fn open(db_name: String) -> Self {
+    pub(crate) fn open(db_name: String) -> Self {
         let dir;
         match create_dir("./".to_string() + &db_name) {
             Ok(()) => {
@@ -80,7 +80,7 @@ impl SST {
         }
     }
 
-    pub fn get(&self, key: &[u8]) -> Option<Vec<u8>> {
+    pub(crate) fn get(&self, key: &[u8]) -> Option<Vec<u8>> {
         dbg!("looking in sst");
         //get from sst
         for level in self.levels.iter() {
@@ -116,7 +116,7 @@ impl SST {
         return None;
     }
 
-    pub fn set(&mut self) {
+    pub(crate) fn set(&mut self) {
         let mem = self.queue.pop_front().unwrap();
 
         // Use iter() and access key and value from each entry
@@ -161,12 +161,12 @@ impl SST {
         }
     }
 
-    pub fn compact(&self) {
+    pub(crate) fn compact(&self) {
         print!("ok compacted");
         // todo!()
     }
 
-    pub fn delete(&mut self, key: &[u8]) -> Result<(), Error> {
+    pub(crate) fn delete(&mut self, key: &[u8]) -> Result<(), Error> {
         for level in self.levels.iter() {
             dbg!(&level);
             let ssts: fs::ReadDir = level.read_dir()?;

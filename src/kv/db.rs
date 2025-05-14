@@ -1,39 +1,3 @@
-// use std::path::Path;
-
-// // use anyhow::Result;
-// use super::{memtable::Memtable, sst::SST, wal::WAL};
-// use crate::errors::{Result, ShortDBErrors};
-// use bytes::Bytes;
-
-// pub struct ShorterDB {
-//     memtable: Memtable,
-//     wal: WAL,
-//     sst: SST,
-// }
-
-// impl ShorterDB {
-//     pub fn new() -> Self {
-//         Self {
-//             memtable: Memtable::new(),
-//             wal: WAL::new(),
-//             sst: SST::new(Path::new(".")).unwrap(),
-//         }
-//     }
-
-//     pub fn get(&self, key: &[u8]) -> Result<Option<Bytes>> {
-//         self.memtable.get(key)
-//     }
-
-//     pub fn set(&self, key: &[u8], value: &[u8]) -> Result<()> {
-//         self.memtable.set(key, value)
-//         //check whether err(flushneeded or not) impl flush_to_sst()
-//     }
-//     pub fn delete(&self, key: &[u8]) -> Result<()> {
-//         self.memtable.delete(key)
-//         //check whether err(flushneeded or not)
-//     }
-// }
-
 use super::{
     memtable::Memtable,
     sst::SST,
@@ -45,10 +9,10 @@ use std::path::{Path, PathBuf};
 use std::{fs, io::Read};
 
 pub struct ShorterDB {
-    pub memtable: Memtable,
-    pub wal: WAL,
-    pub sst: SST,
-    pub data_dir: PathBuf,
+    pub(crate) memtable: Memtable,
+    pub(crate) wal: WAL,
+    pub(crate) sst: SST,
+    pub(crate) data_dir: PathBuf,
 }
 
 impl ShorterDB {

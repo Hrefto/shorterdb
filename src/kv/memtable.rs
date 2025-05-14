@@ -1,24 +1,23 @@
-// use anyhow::Result;
 use crate::errors::{Result, ShortDBErrors};
 use bytes::Bytes;
 use crossbeam_skiplist::SkipMap;
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct Memtable {
-    pub memtable: Arc<SkipMap<Bytes, Bytes>>,
-    pub size: u64,
+pub(crate) struct Memtable {
+    pub(crate) memtable: Arc<SkipMap<Bytes, Bytes>>,
+    pub(crate) size: u64,
 }
 
 impl Memtable {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Memtable {
             memtable: Arc::new(SkipMap::new()),
             size: 0,
         }
     }
 
-    pub fn get(&self, key: &[u8]) -> Result<Option<Bytes>> {
+    pub(crate) fn get(&self, key: &[u8]) -> Result<Option<Bytes>> {
         match self.memtable.get(key).map(|e| e.value().clone()) {
             Some(v) if v == Bytes::copy_from_slice(b"tombstone") => Ok(None),
             Some(v) => Ok(Some(v)),
@@ -26,7 +25,7 @@ impl Memtable {
         }
     }
 
-    pub fn set(&mut self, key: &[u8], value: &[u8]) -> Result<()> {
+    pub(crate) fn set(&mut self, key: &[u8], value: &[u8]) -> Result<()> {
         // Insert the key-value pair into the memtable
         self.memtable
             .insert(Bytes::copy_from_slice(&key), Bytes::copy_from_slice(value));
@@ -43,7 +42,7 @@ impl Memtable {
             Err(ShortDBErrors::ValueNotSet) // Use a meaningful error
         }
     }
-    pub fn delete(&mut self, key: &[u8]) -> Result<()> {
+    pub(crate) fn delete(&mut self, key: &[u8]) -> Result<()> {
         //when we say we delete a key, we set its value to tombstone
         self.memtable.insert(
             Bytes::copy_from_slice(key),
@@ -60,7 +59,7 @@ impl Memtable {
 
         Ok(())
     }
-    pub fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         self.memtable.clear();
         // *self.size.lock().unwrap() = 0;
         self.size = 0;

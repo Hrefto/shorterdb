@@ -3,26 +3,26 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
-pub struct WALEntry {
-    pub key: Bytes,
-    pub value: Bytes,
+pub(crate) struct WALEntry {
+    pub(crate) key: Bytes,
+    pub(crate) value: Bytes,
 }
 
-pub struct WAL {
+pub(crate) struct WAL {
     path: PathBuf,
     file: File,
 }
 
 impl WAL {
     /// Creates a new WAL in a given directory.
-    pub fn new<P: AsRef<Path>>(dir: P) -> io::Result<Self> {
+    pub(crate) fn new<P: AsRef<Path>>(dir: P) -> io::Result<Self> {
         let path = dir.as_ref().join("wal.log");
         let file = OpenOptions::new().create(true).append(true).open(&path)?;
         Ok(WAL { path, file })
     }
 
     /// Writes an entry to the WAL.
-    pub fn write(&mut self, entry: &WALEntry) -> io::Result<()> {
+    pub(crate) fn write(&mut self, entry: &WALEntry) -> io::Result<()> {
         // Serialize the entry
         self.file.write_all(&entry.key.len().to_le_bytes())?; // Key length
         self.file.write_all(entry.key.as_ref())?; // Key
@@ -33,7 +33,7 @@ impl WAL {
     }
 
     /// Reads all entries from the WAL.
-    pub fn read_entries(&self) -> io::Result<Vec<WALEntry>> {
+    pub(crate) fn read_entries(&self) -> io::Result<Vec<WALEntry>> {
         let file = File::open(&self.path)?;
         let mut reader = BufReader::new(file);
         let mut entries = Vec::new();

@@ -1,7 +1,15 @@
 [package]
-name = "shorterdb"
+name = "shorterDB"
 version = "0.1.0"
+authors = ["K V Varun Krishnan <hello@vrn21.com>", "M Arjun Krishna"]
 edition = "2021"
+description = "A simple Key value store built using SkipLists, De-LSM arch, embeddable and grpc enabled."
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "shorterdb"
+path = "src/lib.rs"
+
 
 [dependencies]
 anyhow = "1.0.86"
@@ -31,3 +39,8 @@ tonic-build = "0.11"
 [[bin]]
 name = "server"
 path = "src/server.rs"
+
+
+[[bin]]
+name = "repl"
+path = "src/repl.rs"

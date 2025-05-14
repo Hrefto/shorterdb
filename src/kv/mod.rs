@@ -1,5 +1,5 @@
 pub mod db;
-pub mod memtable;
-pub mod sst;
-pub mod wal;
-pub mod utils;
+pub(crate) mod memtable;
+pub(crate) mod sst;
+pub(crate) mod utils;
+pub(crate) mod wal;

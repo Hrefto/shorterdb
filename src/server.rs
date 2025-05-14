@@ -1,3 +1,10 @@
+//! gRPC Server for ShorterDB
+//!
+//! Run this file using:
+//! ```bash
+//! cargo run --bin server
+//! ```
+
 use proto::basic_server::{Basic, BasicServer};
 use proto::{GetRequest, GetResponse, SetRequest, SetResponse};
 use std::path::Path;
@@ -25,8 +32,7 @@ impl Basic for DbOperations {
     ) -> Result<tonic::Response<GetResponse>, tonic::Status> {
         let key = request.get_ref().key.clone();
 
-        // Lock the database and call the `get` function
-        let db = self.db.lock().await; // Async lock the database
+        let db = self.db.lock().await;
         match db.get(key.as_bytes()) {
             Ok(Some(value)) => match std::str::from_utf8(&value) {
                 Ok(string_value) => {
@@ -49,8 +55,7 @@ impl Basic for DbOperations {
         let key = request.get_ref().key.clone();
         let value = request.get_ref().value.clone();
 
-        // Lock the database and call the `set` function
-        let mut db = self.db.lock().await; // Async lock the database
+        let mut db = self.db.lock().await;
         match db.set(key.as_bytes(), value.as_bytes()) {
             Ok(_) => {
                 let response = SetResponse { success: true };
@@ -65,10 +70,8 @@ impl Basic for DbOperations {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
 
-    // Initialize the ShorterDB instance wrapped in Arc and Mutex
     let db = Arc::new(Mutex::new(ShorterDB::new(Path::new("./test_db"))?));
 
-    // Pass the database to DbOperations
     let db_operations = DbOperations { db };
 
     Server::builder()
