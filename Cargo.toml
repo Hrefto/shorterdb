@@ -1,7 +1,10 @@
 [package]
-name = "shorterdb"
-version = "0.1.0"
-authors = ["K V Varun Krishnan <hello@vrn21.com>", "M Arjun Krishna <arjunkrishna7356@gmail.com>"]
+name = "shorterDB"
+version = "0.1.1"
+authors = [
+    "K V Varun Krishnan <hello@vrn21.com>",
+    "M Arjun Krishna <arjunkrishna7356@gmail.com>",
+]
 edition = "2021"
 description = "A simple Key value store built using SkipLists, De-LSM arch, embeddable and grpc enabled."
 license = "MIT OR Apache-2.0"

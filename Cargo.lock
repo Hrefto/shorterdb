@@ -1022,8 +1022,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "shorterdb"
-version = "0.1.0"
+name = "shorterDB"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "bincode",
